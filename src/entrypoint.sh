@@ -250,11 +250,12 @@ log "Setting data directory permissions."
 FOUNDRY_UID="${FOUNDRY_UID:-foundry}"
 FOUNDRY_GID="${FOUNDRY_GID:-foundry}"
 # skip files matching CONTAINER_PRESERVE_OWNER or already belonging to the right user and group
-find /data \
-  -regex "${CONTAINER_PRESERVE_OWNER:-}" -prune -or \
-  "(" -user "${FOUNDRY_UID}" -and -group "${FOUNDRY_GID}" ")" -or \
-  -exec chown "${FOUNDRY_UID}:${FOUNDRY_GID}" {} +
-log_debug "Completed setting directory permissions."
+{
+  find /data -regex "${CONTAINER_PRESERVE_OWNER:-}" -prune -o -exec chown "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" {} +
+  log_debug "Completed setting directory permissions."
+} || {
+  log "Unable to set the data directory permissions. This could lead to an inconsistent session."
+}
 
 if [ "$1" = "--root-shell" ]; then
   log_warn "Starting a shell as requested by argument --root-shell"
